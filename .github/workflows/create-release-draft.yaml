@@ -97,7 +97,7 @@ jobs:
           set -euo pipefail
 
           target=$(git rev-parse HEAD)
-          title="Draft release $DRAFT_TAG"
+          title="$DRAFT_TAG"
 
           if [ "$ACTION" = "update" ]; then
             gh release delete "$DRAFT_TAG" --yes --cleanup-tag
