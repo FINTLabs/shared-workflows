@@ -69,7 +69,7 @@ jobs:
           echo "This release tracks the latest $MAJOR.x release ($MINOR)." > major-release-notes.md
 
           gh release create "$MAJOR" \
-            --latest \
+            --latest=false \
             --target "$target" \
             --title "$MAJOR" \
             --notes-file major-release-notes.md
