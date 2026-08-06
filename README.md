@@ -4,16 +4,23 @@ This repository contains reusable Github Actions workflows that can be called fr
 
 ## Workflows
 
-### Build and deploy workflows
+### Build and push workflows
 
-- `docker-build-push.yaml` - Builds and pushes a Docker image to GHCR
-- `java-gradle-build-push.yaml` - Builds and pushes a Java application to GHCR
-- `kustomize-deploy.yaml` - Deploys an application to AKS using Kustomize
+- `docker-build-push.yaml` - Builds and pushes a Docker image to Github Container Registry
+- `java-gradle-build-push.yaml` - Builds and pushes a Java application to Github Container Registry
+
+### Deployment workflows
+
+- `kustomize-deploy.yaml` - Deploys an application to Azure Kubernetes Service using Kustomize
 
 ### Release workflows
 
 - `create-release-draft.yaml` - Creates or updates a `vM.N` draft release (starting at `v0.0`, incrementing the minor version, and updating an existing draft instead of duplicating it) with all commits since the previous `vM.N` release, triggered on push to `main`
 - `publish-major-version.yaml` - Publishes or updates a floating major-version tag (e.g. `v1`) when a matching minor release (e.g. `v1.7`) is published
+
+### Admin workflows
+
+- `sync-topics-to-teams.yaml` - Nightly sync that finds repos by topic (`arkiv`, `informasjonsmodell`, etc.) and adds them to the corresponding team with `write` permission
 
 ## Usage
 

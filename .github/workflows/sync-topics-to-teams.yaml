@@ -1,0 +1,61 @@
+name: Sync repository topics to teams
+
+on:
+  workflow_dispatch:
+  #schedule:
+    # Run every night at 06:00 UTC
+  #  - cron: '0 6 * * *'
+
+permissions: {}
+
+env:
+# The workflow needs a classic PAT with at least:
+#   - repo (to read repositories and topics)
+#   - admin:org (to manage team repository permissions)
+  GH_TOKEN: ${{ secrets.GITHUBACTION_TOKEN }}
+  ORG: ${{ github.repository_owner }}
+  LIMIT: 2
+  MAPPINGS: >
+    [
+      {"topic":"arkiv","team":"arkivlaget","permission":"push"},
+      {"topic":"informasjonsmodell","team":"informasjonslaget","permission":"push"}
+    ]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Sync repos by topic to teams
+        run: |
+          set -euo pipefail
+
+          : "${GH_TOKEN:?GITHUBACTION_TOKEN secret is required}"
+
+          echo "$MAPPINGS" | jq -c '.[]' | while IFS= read -r entry; do
+            topic=$(echo "$entry" | jq -r '.topic')
+            team=$(echo "$entry" | jq -r '.team')
+            permission=$(echo "$entry" | jq -r '.permission // "push"')
+
+            echo "==> Syncing repos with topic '$topic' to team '$team' (permission: $permission)"
+
+            repos_json=$(gh repo list "$ORG" --topic "$topic" --json nameWithOwner --limit "$LIMIT" | jq ".[:$LIMIT]")
+            count=$(echo "$repos_json" | jq 'length')
+            echo "    Found $count repo(s) with topic '$topic'"
+
+            if [ "$count" -eq 0 ]; then
+              continue
+            fi
+
+            echo "$repos_json" | jq -r '.[].nameWithOwner' | while IFS= read -r repo; do
+              echo "    Adding $repo"
+              if gh api "orgs/$ORG/teams/$team/repos/$repo" \
+                  --method PUT \
+                  -f "permission=$permission" \
+                  --silent; then
+                echo "      OK"
+              else
+                echo "      FAILED (continuing)"
+              fi
+            done
+          done
