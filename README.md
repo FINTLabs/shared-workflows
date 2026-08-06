@@ -4,7 +4,9 @@ This repository contains reusable Github Actions workflows that can be called fr
 
 ## Workflows
 
-- `java-gradle build-push.yaml` - Builds and pushes a Java application to GHCR
+- `create-release-draft.yaml` - Creates a draft release with all commits since the previous release, triggered on push to `main`
+- `docker-build-push.yaml` - Builds and pushes a Docker image to GHCR
+- `java-gradle-build-push.yaml` - Builds and pushes a Java application to GHCR
 - `java-kustomize-deploy.yaml` - Deploys a Java application to AKS using Kustomize
 
 ## Usage
