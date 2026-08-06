@@ -1,4 +1,4 @@
-name: Publish major version release
+name: Publish major version tag
 
 on:
   release:
@@ -49,11 +49,9 @@ jobs:
             exit 0
           fi
 
-      - name: Create or update major version release
+      - name: Create or update major version tag
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MAJOR: ${{ steps.major.outputs.major }}
-          MINOR: ${{ steps.major.outputs.minor }}
         run: |
           set -euo pipefail
 
@@ -63,13 +61,5 @@ jobs:
 
           target=$(git rev-parse HEAD)
 
-          gh release delete "$MAJOR" --yes --cleanup-tag 2>/dev/null || true
-          git tag -d "$MAJOR" 2>/dev/null || true
-
-          echo "This release tracks the latest $MAJOR.x release ($MINOR)." > major-release-notes.md
-
-          gh release create "$MAJOR" \
-            --latest=false \
-            --target "$target" \
-            --title "$MAJOR" \
-            --notes-file major-release-notes.md
+          git tag -f "$MAJOR" "$target"
+          git push -f origin "$MAJOR"
