@@ -1,0 +1,111 @@
+name: Create release draft
+
+on:
+  push:
+    branches:
+      - main
+  workflow_call:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: create-release-draft-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  create-release-draft:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Determine draft version and previous release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          all_releases=$(gh release list --json tagName,isDraft --limit 100 2>/dev/null || echo '[]')
+
+          sorted=$(echo "$all_releases" | jq -c '
+            [ .[]
+              | select(.tagName | test("^v[0-9]+\\.[0-9]+$"))
+              | { tag: .tagName, draft: .isDraft, major: (.tagName | ltrimstr("v") | split(".")[0] | tonumber), minor: (.tagName | ltrimstr("v") | split(".")[1] | tonumber) }
+            ] | sort_by(.major, .minor)
+          ')
+
+          count=$(echo "$sorted" | jq 'length')
+
+          if [ "$count" -eq 0 ]; then
+            draft_tag="v0.0"
+            previous_tag=""
+            action="create"
+          else
+            highest=$(echo "$sorted" | jq -c '.[-1]')
+            is_draft=$(echo "$highest" | jq -r '.draft')
+            highest_tag=$(echo "$highest" | jq -r '.tag')
+
+            if [ "$is_draft" = "true" ]; then
+              draft_tag="$highest_tag"
+              action="update"
+              previous_tag=$(echo "$sorted" | jq -r '.[-2].tag // empty')
+            else
+              major=$(echo "$highest" | jq -r '.major')
+              minor=$(echo "$highest" | jq -r '.minor')
+              draft_tag="v${major}.$((minor + 1))"
+              previous_tag="$highest_tag"
+              action="create"
+            fi
+          fi
+
+          echo "draft-tag=$draft_tag" >> "$GITHUB_OUTPUT"
+          echo "previous-tag=$previous_tag" >> "$GITHUB_OUTPUT"
+          echo "action=$action" >> "$GITHUB_OUTPUT"
+          echo "Draft tag: $draft_tag"
+          echo "Previous tag: ${previous_tag:-<none>}"
+          echo "Action: $action"
+
+      - name: Generate release notes
+        id: notes
+        env:
+          PREVIOUS_TAG: ${{ steps.release.outputs.previous-tag }}
+          COMMIT_URL: https://github.com/${{ github.repository }}/commit/
+        run: |
+          if [ -n "$PREVIOUS_TAG" ] && git rev-parse "$PREVIOUS_TAG" >/dev/null 2>&1; then
+            git log "$PREVIOUS_TAG..HEAD" --reverse --pretty=format:"- %s ([%h](${COMMIT_URL}%H))%n" > release-notes.md
+          else
+            git log --reverse --pretty=format:"- %s ([%h](${COMMIT_URL}%H))%n" > release-notes.md
+          fi
+          if [ ! -s release-notes.md ]; then
+            echo "No new commits since the previous release." > release-notes.md
+          fi
+          echo "Release notes:"
+          cat release-notes.md
+
+      - name: Create or update draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRAFT_TAG: ${{ steps.release.outputs.draft-tag }}
+          ACTION: ${{ steps.release.outputs.action }}
+        run: |
+          set -euo pipefail
+
+          target=$(git rev-parse HEAD)
+          title="Draft release $DRAFT_TAG"
+
+          if [ "$ACTION" = "update" ]; then
+            gh release delete "$DRAFT_TAG" --yes --cleanup-tag
+            git tag -d "$DRAFT_TAG" 2>/dev/null || true
+          fi
+
+          gh release create "$DRAFT_TAG" \
+            --draft \
+            --title "$title" \
+            --target "$target" \
+            --notes-file release-notes.md
