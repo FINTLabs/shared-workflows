@@ -8,7 +8,7 @@ This repository contains reusable Github Actions workflows that can be called fr
 
 - `docker-build-push.yaml` - Builds and pushes a Docker image to GHCR
 - `java-gradle-build-push.yaml` - Builds and pushes a Java application to GHCR
-- `java-kustomize-deploy.yaml` - Deploys a Java application to AKS using Kustomize
+- `kustomize-deploy.yaml` - Deploys an application to AKS using Kustomize
 
 ### Release workflows
 
@@ -33,14 +33,14 @@ permissions:
 jobs:
 
   build-push:
-    uses: ./.github/workflows/reusable-build-push.yaml
+    uses: ./.github/workflows/java-gradle-build-push.yaml
     with:
       java-version: '8'
     secrets: inherit
 
   beta:
     needs: build-push
-    uses: ./.github/workflows/reusable-deploy.yaml
+    uses: ./.github/workflows/kustomize-deploy.yaml
     strategy:
       matrix:
         org: [ bym-oslo-kommune-no ]
@@ -53,7 +53,7 @@ jobs:
 
   prod:
     needs: [ build-push, beta ]
-    uses: ./.github/workflows/reusable-deploy.yaml
+    uses: ./.github/workflows/kustomize-deploy.yaml
     strategy:
       matrix:
         org: [ nfk-no, mrfylke-no ]
