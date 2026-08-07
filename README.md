@@ -1,13 +1,13 @@
-# Shared Github Actions workflows
+# Shared GitHub Actions workflows
 
-This repository contains reusable Github Actions workflows that can be called from other repositories.
+This repository contains reusable GitHub Actions workflows that can be called from other repositories.
 
 ## Workflows
 
 ### Build and push workflows
 
-- `docker-build-push.yaml` - Builds and pushes a Docker image to Github Container Registry
-- `java-gradle-build-push.yaml` - Builds and pushes a Java application to Github Container Registry
+- `docker-build-push.yaml` - Builds and pushes a Docker image to GitHub Container Registry
+- `java-gradle-build-push.yaml` - Builds and pushes a Java application to GitHub Container Registry
 
 ### Deployment workflows
 
@@ -20,7 +20,7 @@ This repository contains reusable Github Actions workflows that can be called fr
 
 ### Admin workflows
 
-- `sync-topics-to-teams.yaml` - Nightly sync that finds repos by topic (`arkiv`, `informasjonsmodell`, etc.) and adds them to the corresponding team with `write` permission
+- `sync-topics-to-teams.yaml` - Nightly sync that finds repository by topic (`arkiv`, `informasjonsmodell`, etc.) and adds them to the corresponding team with `write` permission
 
 ## Usage
 
