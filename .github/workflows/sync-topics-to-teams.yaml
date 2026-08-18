@@ -17,8 +17,8 @@ env:
   LIMIT: 100
   MAPPINGS: >
     [
-      {"topic":"arkiv","team":"arkivlaget","permission":"push"},
-      {"topic":"informasjonsmodell","team":"informasjonslaget","permission":"push"}
+      {"topic":"arkiv","team":"arkivlaget","permission":"admin"},
+      {"topic":"informasjonsmodell","team":"informasjonslaget","permission":"admin"}
     ]
 
 jobs:

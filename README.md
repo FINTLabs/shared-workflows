@@ -20,7 +20,7 @@ This repository contains reusable GitHub Actions workflows that can be called fr
 
 ### Admin workflows
 
-- `sync-topics-to-teams.yaml` - Nightly sync that finds repository by topic (`arkiv`, `informasjonsmodell`, etc.) and adds them to the corresponding team with `write` permission
+- `sync-topics-to-teams.yaml` - Nightly sync that finds repository by topic (`arkiv`, `informasjonsmodell`, etc.) and adds them to the corresponding team with selected permission level.
 
 ## Usage
 
