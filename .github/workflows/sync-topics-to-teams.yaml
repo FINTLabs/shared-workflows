@@ -14,7 +14,7 @@ env:
 #   - admin:org (to manage team repository permissions)
   GH_TOKEN: ${{ secrets.GITHUBACTION_TOKEN }}
   ORG: ${{ github.repository_owner }}
-  LIMIT: 2
+  LIMIT: 100
   MAPPINGS: >
     [
       {"topic":"arkiv","team":"arkivlaget","permission":"push"},
