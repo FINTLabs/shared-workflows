@@ -33,11 +33,7 @@ jobs:
 
       - name: Set image
         working-directory: kustomize/overlays/${{ inputs.org && format('{0}/{1}', inputs.org, inputs.environment) || inputs.environment }}
-        env:
-          IMAGES: ${{ inputs.tags }}
-        run: |
-          readarray -t images <<< "$IMAGES"
-          kustomize edit set image "${images[@]}"
+        run: kustomize edit set image "$(head -n 1 <<< '${{ inputs.tags }}')"
 
       - name: Bake manifests with Kustomize
         id: manifest
@@ -69,5 +65,4 @@ jobs:
         with:
           action: deploy
           manifests: ${{ steps.manifest.outputs.manifestsBundle }}
-          images: ${{ inputs.tags }}
           namespace: ${{ steps.namespace.outputs.name }}
