@@ -31,19 +31,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Set image
+        working-directory: kustomize/overlays/${{ inputs.org && format('{0}/{1}', inputs.org, inputs.environment) || inputs.environment }}
+        env:
+          IMAGES: ${{ inputs.tags }}
+        run: |
+          readarray -t images <<< "$IMAGES"
+          kustomize edit set image "${images[@]}"
+
       - name: Bake manifests with Kustomize
         id: manifest
         uses: azure/k8s-bake@v4
         with:
           renderEngine: kustomize
           kustomizationPath: kustomize/overlays/${{ inputs.org && format('{0}/{1}', inputs.org, inputs.environment) || inputs.environment }}
-
-      - name: Apply image to Kubernetes manifests
-        id: substitute
-        uses: azure/k8s-artifact-substitute@v2
-        with:
-          images: ${{ inputs.tags }}
-          manifests: ${{ steps.manifest.outputs.manifestsBundle }}
 
       - name: Login to Azure
         uses: azure/login@v3
@@ -60,13 +61,13 @@ jobs:
       - name: Get namespace from manifest
         id: namespace
         run: |
-          namespace=$(yq '.metadata.namespace' ${{ steps.substitute.outputs.manifests }} | head -n 1 | sed 's/^null$/default/')
+          namespace=$(yq '.metadata.namespace' "${{ steps.manifest.outputs.manifestsBundle }}" | head -n 1 | sed 's/^null$/default/')
           echo "name=$namespace" >> $GITHUB_OUTPUT
 
       - name: Deploy to Kubernetes
         uses: azure/k8s-deploy@v7
         with:
           action: deploy
-          manifests: ${{ steps.substitute.outputs.manifests }}
+          manifests: ${{ steps.manifest.outputs.manifestsBundle }}
           images: ${{ inputs.tags }}
           namespace: ${{ steps.namespace.outputs.name }}
