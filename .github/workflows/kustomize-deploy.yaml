@@ -31,16 +31,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set image
-        working-directory: kustomize/overlays/${{ inputs.org && format('{0}/{1}', inputs.org, inputs.environment) || inputs.environment }}
-        run: kustomize edit set image "$(head -n 1 <<< '${{ inputs.tags }}')"
-
       - name: Bake manifests with Kustomize
         id: manifest
         uses: azure/k8s-bake@v4
         with:
           renderEngine: kustomize
           kustomizationPath: kustomize/overlays/${{ inputs.org && format('{0}/{1}', inputs.org, inputs.environment) || inputs.environment }}
+
+      - name: Set image
+        shell: bash
+        env:
+          TAGS: ${{ inputs.tags }}
+          MANIFEST_BUNDLE: ${{ steps.manifest.outputs.manifestsBundle }}
+        run: |
+          sed -i "s|image: .*|image: $(head -n 1 <<< "$TAGS")|" "$MANIFEST_BUNDLE"
 
       - name: Login to Azure
         uses: azure/login@v3
