@@ -44,10 +44,10 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=ref,event=branch,suffix=-{{sha}}
-            type=ref,event=pr,suffix=-{{sha}}
             type=sha,prefix={{date 'YYYY-MM-DD-'}},enable={{is_default_branch}}
             type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch,suffix=-{{sha}}
+            type=ref,event=pr,suffix=-{{sha}}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v4
