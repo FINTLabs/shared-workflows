@@ -28,6 +28,7 @@ jobs:
         with:
           distribution: temurin
           java-version: ${{ inputs.java-version }}
+          check-latest: true
           cache: gradle
 
       - uses: gradle/actions/wrapper-validation@v6
